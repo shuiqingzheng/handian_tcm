@@ -85,11 +85,11 @@ WSGI_APPLICATION = 'handian_tcm.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'OPTIONS': {
-            'database': 'handian_tcm',
-            'user': 'root',
-            'password': 'mysql',
-        },
+        'HOST': 'localhost',
+        'PORT': 3306,
+        'USER': 'root',
+        'PASSWORD': 'mysql',
+        'NAME': 'handian_tcm',
     }
 }
 

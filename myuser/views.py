@@ -1,6 +1,6 @@
 from .serializers import MyUserSerializer, PasswordSerializer
 from .models import MyUser
-from rest_framework import generics, viewsets
+from rest_framework import generics
 from rest_framework.response import Response
 from oauth2_provider.contrib.rest_framework import TokenHasScope
 

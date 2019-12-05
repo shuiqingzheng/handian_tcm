@@ -14,9 +14,8 @@ clinicalinvest.sublime-*
 
 # static files
 /collect_static/*
-/clinicalinvestV3/settings.py
+/handian_tcm/settings.py
 shell.py
-wo.pid
 
 # C extensions
 *.so
