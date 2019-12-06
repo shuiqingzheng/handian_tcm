@@ -4,7 +4,7 @@ from tcm.models import TCM, Literature, HandianProduct
 
 @admin.register(TCM)
 class TCMAdmin(admin.ModelAdmin):
-    list_display = ('id', )
+    list_display = ('neo_id', 'name')
 
 
 @admin.register(Literature)

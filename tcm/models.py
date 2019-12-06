@@ -2,14 +2,14 @@ from django.db import models
 
 
 class TCM(models.Model):
-    neo_id = models.IntegerField(verbose_name='TCM_ID', help_text='TCM_ID', blank=True, null=True, unique=True)
+    neo_id = models.IntegerField(verbose_name='Neo4j_ID', help_text='Neo4j_ID', blank=True, null=True, unique=True)
 
     bei = models.TextField(help_text='备注', verbose_name='备注', blank=True, null=True)
     bie = models.TextField(help_text='别名', verbose_name='别名', blank=True, null=True)
     cang = models.TextField(help_text='贮藏', verbose_name='贮藏', blank=True, null=True)
     chu = models.TextField(help_text='出处', verbose_name='出处', blank=True, null=True)
     du = models.TextField(help_text='毒性', verbose_name='毒性', blank=True, null=True)
-    fieldname = models.TextField(help_text='中药名', verbose_name='中药名', blank=True, null=True)
+    name = models.TextField(help_text='中药名', verbose_name='中药名', blank=True, null=True)
     fu = models.TextField(help_text='复方', verbose_name='复方', blank=True, null=True)
     ge = models.TextField(help_text='各家论述', verbose_name='各家论述', blank=True, null=True)
     gong = models.TextField(help_text='功能主治', verbose_name='功能主治', blank=True, null=True)

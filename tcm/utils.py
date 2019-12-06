@@ -48,7 +48,7 @@ def same_code_tcm(tcm, i):
     tcm.cang = i['cang']
     tcm.chu = i['chu']
     tcm.du = i['du']
-    tcm.fieldname = i['fieldname']
+    tcm.name = i['name']
     tcm.fu = i['fu']
     tcm.ge = i['ge']
     tcm.gong = i['gong']
@@ -91,3 +91,24 @@ def sys_tcm():
         else:
             same_code_tcm(obj_tcm, i)
             obj_tcm.save()
+
+
+def same_code_product(instance, i):
+    instance.name = i['name']
+
+
+def sys_product():
+    nodes = matcher.match('HandianProduct')
+
+    for i in nodes:
+        # 判断是否已经存在
+        try:
+            obj_product = models.HandianProduct.objects.get(neo_id=i.identity)
+        except models.HandianProduct.DoesNotExist:
+            product = models.HandianProduct()
+            product.neo_id = i.identity
+            same_code_product(product, i)
+            product.save()
+        else:
+            same_code_product(obj_product, i)
+            obj_product.save()

@@ -1,4 +1,5 @@
 from handian_tcm import neo_graph
+from .permissions import ProductListPermission
 
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -34,7 +35,7 @@ class LiteratureView(viewsets.ModelViewSet):
 
 
 class HandianProductView(viewsets.ModelViewSet):
-    permission_classes = [TokenHasScope, ]
+    permission_classes = [ProductListPermission]
     required_scopes = ['basic:read']
     queryset = models.HandianProduct.objects.all()
     lookup_field = 'neo_id'
@@ -42,6 +43,7 @@ class HandianProductView(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'literatures':
             return LiteratureByProductSerializer
+
         return HandianProductSerializer
 
     @action(detail=False)

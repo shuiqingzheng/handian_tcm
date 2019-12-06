@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+from .constants import (
+    HOST, PORT, USER, PASSWORD, NAME,
+    CLIENT_ID, CLIENT_SECRET
+)
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -85,11 +89,11 @@ WSGI_APPLICATION = 'handian_tcm.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'HOST': 'localhost',
-        'PORT': 3306,
-        'USER': 'root',
-        'PASSWORD': 'mysql',
-        'NAME': 'handian_tcm',
+        'HOST': HOST,
+        'PORT': PORT,
+        'USER': USER,
+        'PASSWORD': PASSWORD,
+        'NAME': NAME,
     }
 }
 
@@ -174,10 +178,8 @@ SWAGGER_SETTINGS = {
         }
     },
     'OAUTH2_CONFIG': {
-        'clientId': 'yfix1U8KxXvIBLH7LDc6fj6FPCFX8Sq4PrHeJ66a',
-        'clientSecret': 'Eud4toYXo2rOjR2yxXLnHNDduz1lzu5qoQnHXiRAziHAk39ok'
-                        'mbTC7fRDMnFX0CFNu3PNHJZMmvFTEbuUf5JgicsYMW11gp0ED8'
-                        'StrcDozg6LJNevpTwlaqlwmS9jdiA',
+        'clientId': CLIENT_ID,
+        'clientSecret': CLIENT_SECRET,
         'appName': 'test'
     },
 }
