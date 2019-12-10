@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from tcm.models import TCM, Literature, HandianProduct
+from tcm.models import TCM, Literature, HandianProduct, Prescription, XingWei
 
 
 class TcmSerializer(serializers.ModelSerializer):
@@ -34,3 +34,15 @@ class HandianProductSerializer(serializers.ModelSerializer):
         model = HandianProduct
         exclude = ('id', )
         # fields = '__all__'
+
+
+class PrescriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Prescription
+        exclude = ('id',)
+
+
+class XingWeiSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = XingWei
+        exclude = ('id', )

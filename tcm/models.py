@@ -46,7 +46,7 @@ class TCM(models.Model):
 
 
 class Literature(models.Model):
-    neo_id = models.IntegerField(verbose_name='TCM_ID', help_text='TCM_ID', blank=True, null=True, unique=True)
+    neo_id = models.IntegerField(verbose_name='Neo4j_ID', help_text='Neo4j_ID', blank=True, null=True, unique=True)
 
     literature_id = models.IntegerField(help_text='ID', verbose_name='ID', blank=True, null=True)
 
@@ -88,7 +88,7 @@ class Literature(models.Model):
 
 
 class HandianProduct(models.Model):
-    neo_id = models.IntegerField(verbose_name='TCM_ID', help_text='TCM_ID', blank=True, null=True, unique=True)
+    neo_id = models.IntegerField(verbose_name='Neo4j_ID', help_text='Neo4j_ID', blank=True, null=True, unique=True)
 
     name = models.CharField(help_text='名称', verbose_name='名称', blank=True, null=True, max_length=50)
 
@@ -97,5 +97,33 @@ class HandianProduct(models.Model):
 
     class Meta:
         verbose_name = '汉典产品'
+        verbose_name_plural = verbose_name
+        ordering = ['-id']
+
+
+class Prescription(models.Model):
+    neo_id = models.IntegerField(verbose_name='Neo4j_ID', help_text='Neo4j_ID', blank=True, null=True, unique=True)
+
+    name = models.CharField(verbose_name='名称', help_text='名称', max_length=200, blank=True, null=True,)
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    class Meta:
+        verbose_name = '处方'
+        verbose_name_plural = verbose_name
+        ordering = ['-id']
+
+
+class XingWei(models.Model):
+    neo_id = models.IntegerField(verbose_name='Neo4j_ID', help_text='Neo4j_ID', blank=True, null=True, unique=True)
+
+    name = models.CharField(verbose_name='名称', help_text='名称', max_length=200, blank=True, null=True,)
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    class Meta:
+        verbose_name = '性味'
         verbose_name_plural = verbose_name
         ordering = ['-id']

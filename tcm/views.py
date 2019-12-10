@@ -9,7 +9,8 @@ from oauth2_provider.contrib.rest_framework import TokenHasScope
 from tcm import models
 from tcm.serializers import (
     TcmSerializer, LiteratureSerializer, HandianProductSerializer,
-    LiteratureByProductSerializer,
+    LiteratureByProductSerializer, PrescriptionSerializer,
+    XingWeiSerializer,
 )
 
 # from tcm.filters import LiteratureIDFilterBackend
@@ -195,3 +196,19 @@ class HandianProductView(viewsets.ModelViewSet):
             'links': response_links,
             'data': response_node,
         })
+
+
+class PrescriptionView(viewsets.ModelViewSet):
+    permission_classes = [TokenHasScope, ]
+    required_scopes = ['basic:read']
+    queryset = models.Prescription.objects.all()
+    serializer_class = PrescriptionSerializer
+    lookup_field = 'neo_id'
+
+
+class XingWeiView(viewsets.ModelViewSet):
+    permission_classes = [TokenHasScope, ]
+    required_scopes = ['basic:read']
+    queryset = models.XingWei.objects.all()
+    serializer_class = XingWeiSerializer
+    lookup_field = 'neo_id'

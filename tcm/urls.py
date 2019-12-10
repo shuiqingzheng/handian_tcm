@@ -1,6 +1,6 @@
 from django.urls import path
 
-from tcm.views import TcmView, LiteratureView, HandianProductView
+from tcm.views import TcmView, LiteratureView, HandianProductView, PrescriptionView, XingWeiView
 
 urlpatterns = [
     path('tcm/', TcmView.as_view({'get': 'list'}), name='tcm-list'),
@@ -20,4 +20,12 @@ urlpatterns = [
     path('product/<int:neo_id>/relationships/', HandianProductView.as_view({'get': 'relationships'}), name='product-relationship-list'),
 
     path('product/<int:neo_id>/literatures/', HandianProductView.as_view({'get': 'literatures'}), name='product-literature-list'),
+
+    path('prescription/', PrescriptionView.as_view({'get': 'list'}), name='Prescription-list'),
+
+    path('prescription/<int:neo_id>/', PrescriptionView.as_view({'get': 'retrieve'}), name='Prescription-detail'),
+
+    path('xingwei/', XingWeiView.as_view({'get': 'list'}), name='XingWei-list'),
+
+    path('xingwei/<int:neo_id>/', XingWeiView.as_view({'get': 'retrieve'}), name='XingWei-detail'),
 ]

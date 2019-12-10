@@ -112,3 +112,43 @@ def sys_product():
         else:
             same_code_product(obj_product, i)
             obj_product.save()
+
+
+same_code_prescription = same_code_product
+
+
+def sys_prescription():
+    nodes = matcher.match('Prescription')
+
+    for i in nodes:
+        # 判断是否已经存在
+        try:
+            obj_prescription = models.Prescription.objects.get(neo_id=i.identity)
+        except models.Prescription.DoesNotExist:
+            prescription = models.Prescription()
+            prescription.neo_id = i.identity
+            same_code_prescription(prescription, i)
+            prescription.save()
+        else:
+            same_code_prescription(obj_prescription, i)
+            obj_prescription.save()
+
+
+same_code_xingwei = same_code_product
+
+
+def sys_xingwei():
+    nodes = matcher.match('Xingwei')
+
+    for i in nodes:
+        # 判断是否已经存在
+        try:
+            obj_xing = models.XingWei.objects.get(neo_id=i.identity)
+        except models.XingWei.DoesNotExist:
+            xing = models.XingWei()
+            xing.neo_id = i.identity
+            same_code_xingwei(xing, i)
+            xing.save()
+        else:
+            same_code_xingwei(obj_xing, i)
+            obj_xing.save()
