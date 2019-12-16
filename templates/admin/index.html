@@ -1,0 +1,19 @@
+{% extends "admin/index.html" %}
+
+{% block sidebar %}
+    {{block.super}}
+    <div>
+        <h1>数据同步</h1>
+        <a href="/admin/importdb/" class="a_btn">
+            同步Neo4j数据表信息
+        </a>
+        <style>
+            .a_btn {
+                border: 1px solid rgb(132, 173, 197); 
+                padding: 4px;
+                background: rgb(132, 173, 197);
+                color: white !important;;
+            }
+        </style>
+    </div>
+{% endblock %}

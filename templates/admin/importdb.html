@@ -1,0 +1,50 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+{% load filters %}
+
+{% block content %}
+    
+    <form id="importdb-form" method="post" enctype="multipart/form-data" novalidate action="/admin/importdb/">{% csrf_token %}
+        <table>
+            <thead>
+                <tr>
+                  <th scope="col" class="action-checkbox-column">
+                    <div class="text">
+                    </div>
+                    <div class="clear"></div>
+                  </th>
+                  <th scope="col">
+                    <div class="text">
+                        同步的表名称
+                    </div>
+                    <div class="clear"></div>
+                  </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for model in app_models.values %}
+                    <tr>
+                      <td scope="col" class="action-checkbox">
+                          <input type="checkbox" name="selected_model" class="check" value="{{ model.model_name }}">
+                      </td>
+                      <td scope="col">{{ model.model_verbose_name }}</td>
+                    </tr> 
+                {% endfor %}
+                <tr>
+                    <td colspan="2" style='text-align: center;'>
+                        <input type="submit" value='同步'>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </form>
+    {% if error_msg %}
+    <div class="error_response" style="color: red;">同步错误信息: {{ error_msg }}</div>
+    {% endif %}
+    {% if ok_msg %}
+    <div class="ok_response" style="color: green;">同步进度: {{ ok_msg }}</div>
+    {% endif %}
+    {% if no_msg %}
+    <div class="no_response" style="color: orange;">⚠️ {{ no_msg }}</div>
+    {% endif %}
+{% endblock content %}

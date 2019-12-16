@@ -152,3 +152,12 @@ def sys_xingwei():
         else:
             same_code_xingwei(obj_xing, i)
             obj_xing.save()
+
+
+MODEL_FUNC_NAME = {
+    'HandianProduct': sys_product,
+    'Literature': sys_literatures,
+    'TCM': sys_tcm,
+    'Prescription': sys_prescription,
+    'XingWei': sys_xingwei
+}

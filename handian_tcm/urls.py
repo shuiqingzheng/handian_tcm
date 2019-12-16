@@ -19,6 +19,7 @@ from django.urls import path, include
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+from importdb.views import ImportDBView
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -36,6 +37,8 @@ urlpatterns = [
     path('api-docs/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 
     path('admin/', admin.site.urls),
+    path('admin/importdb/', ImportDBView.as_view()),
+
     path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 
     path('user/', include('myuser.urls'), name='myuser-urls'),
