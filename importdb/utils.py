@@ -97,6 +97,29 @@ def same_code_product(instance, i):
     instance.name = i['name']
 
 
+def same_code_term(instance, i):
+    instance.name = i['name']
+    instance.english = i['english']
+    instance.content = i['content']
+
+
+def sys_term():
+    nodes = matcher.match('Term')
+
+    for i in nodes:
+        # 判断是否已经存在
+        try:
+            obj_term = models.Term.objects.get(neo_id=i.identity)
+        except models.Term.DoesNotExist:
+            term = models.Term()
+            term.neo_id = i.identity
+            same_code_term(term, i)
+            term.save()
+        else:
+            same_code_term(obj_term, i)
+            obj_term.save()
+
+
 def sys_product():
     nodes = matcher.match('HandianProduct')
 
@@ -159,5 +182,6 @@ MODEL_FUNC_NAME = {
     'Literature': sys_literatures,
     'TCM': sys_tcm,
     'Prescription': sys_prescription,
-    'XingWei': sys_xingwei
+    'XingWei': sys_xingwei,
+    'Term': sys_term,
 }

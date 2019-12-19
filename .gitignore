@@ -10,12 +10,10 @@ upload
 *.DS_Store*
 
 # sublime setting
-clinicalinvest.sublime-*
+handian_tcm.sublime-*
 
 # static files
-/collect_static/*
 /handian_tcm/settings.py
-shell.py
 
 # C extensions
 *.so

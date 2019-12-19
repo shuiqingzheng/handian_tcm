@@ -11,10 +11,6 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
-from .constants import (
-    HOST, PORT, USER, PASSWORD, NAME,
-    CLIENT_ID, CLIENT_SECRET
-)
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -90,11 +86,11 @@ WSGI_APPLICATION = 'handian_tcm.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'HOST': HOST,
-        'PORT': PORT,
-        'USER': USER,
-        'PASSWORD': PASSWORD,
-        'NAME': NAME,
+        'HOST': os.environ.get('RIVER_MYSQL_HOST'),
+        'PORT': os.environ.get('RIVER_MYSQL_PORT'),
+        'USER': os.environ.get('RIVER_MYSQL_USER'),
+        'PASSWORD': os.environ.get('RIVER_MYSQL_PASSWORD'),
+        'NAME': os.environ.get('RIVER_MYSQL_DBNAME'),
     }
 }
 
@@ -179,8 +175,14 @@ SWAGGER_SETTINGS = {
         }
     },
     'OAUTH2_CONFIG': {
-        'clientId': CLIENT_ID,
-        'clientSecret': CLIENT_SECRET,
-        'appName': 'test'
+        # 'clientId': 'yfix1U8KxXvIBLH7LDc6fj6FPCFX8Sq4PrHeJ66a',
+        # 'clientSecret': 'Eud4toYXo2rOjR2yxXLnHNDduz1lzu5qoQnHXiRAziHAk39ok'
+                        # 'mbTC7fRDMnFX0CFNu3PNHJZMmvFTEbuUf5JgicsYMW11gp0ED8'
+                        # 'StrcDozg6LJNevpTwlaqlwmS9jdiA',
+        'appName': 'Handian'
     },
 }
+
+RIVER_KTDB_ADDR = os.environ.get('RIVER_KTDB_ADDR')
+RIVER_KTDB_USER = os.environ.get('RIVER_KTDB_USER')
+RIVER_KTDB_PASSWORD = os.environ.get('RIVER_KTDB_PASSWORD')

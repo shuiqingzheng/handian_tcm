@@ -127,3 +127,21 @@ class XingWei(models.Model):
         verbose_name = '性味'
         verbose_name_plural = verbose_name
         ordering = ['-id']
+
+
+class Term(models.Model):
+    neo_id = models.IntegerField(verbose_name='Neo4j_ID', help_text='Neo4j_ID', blank=True, null=True, unique=True)
+
+    english = models.CharField(verbose_name='英文名称', help_text='英文名称', max_length=200, blank=True, null=True,)
+
+    name = models.CharField(verbose_name='名称', help_text='名称', max_length=200, blank=True, null=True,)
+
+    content = models.TextField(help_text='内容', verbose_name='内容', blank=True, null=True)
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    class Meta:
+        verbose_name = '医学名词'
+        verbose_name_plural = verbose_name
+        ordering = ['-id']

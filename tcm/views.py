@@ -1,22 +1,27 @@
 from handian_tcm import neo_graph
 from .permissions import ProductListPermission
-
+from .utils import get_info_from_node
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.exceptions import ParseError, NotFound
 from oauth2_provider.contrib.rest_framework import TokenHasScope
 
 from tcm import models
 from tcm.serializers import (
     TcmSerializer, LiteratureSerializer, HandianProductSerializer,
     LiteratureByProductSerializer, PrescriptionSerializer,
-    XingWeiSerializer,
+    XingWeiSerializer, PrescriptionUrlSerializer, TcmUrlSerializer,
+    TermSerializer, TermUrlSerializer,
 )
 
-# from tcm.filters import LiteratureIDFilterBackend
 
-# neo4j 导入mysql数据库
-# from tcm.utils import sys_tcm, sys_literatures
+class TermView(viewsets.ModelViewSet):
+    permission_classes = [TokenHasScope, ]
+    required_scopes = ['basic:read']
+    serializer_class = TermSerializer
+    queryset = models.Term.objects.all()
+    lookup_field = 'neo_id'
 
 
 class TcmView(viewsets.ModelViewSet):
@@ -58,7 +63,10 @@ class HandianProductView(viewsets.ModelViewSet):
 
         instance = self.get_object()
 
-        center_node = neo_graph.nodes.match('HandianProduct', name=instance.name).first()
+        center_node = neo_graph.nodes.match(
+            'HandianProduct',
+            name=instance.name
+        ).first()
 
         if not center_node:
             return Response({
@@ -133,69 +141,11 @@ class HandianProductView(viewsets.ModelViewSet):
     # override retrieve to response relationship
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
+        response_result = get_info_from_node(instance, 'HandianProduct')
+        if not response_result:
+            raise NotFound
 
-        relationships = neo_graph.run('match (p:HandianProduct)-[r]->(n) where p.name="{}" return distinct type(r) as tp'.format(instance.name)).data()
-
-        # 节点关系(始--关系--末)
-        response_links = list()
-        # 节点信息
-        response_node = list()
-
-        a = neo_graph.nodes.match('HandianProduct', name=instance.name).first()
-
-        if not a:
-            return Response({
-                'links': None,
-                'data': None,
-            })
-
-        START_ID = a.identity
-
-        response_node.append({
-            'name': a['name'],
-            'id': START_ID,
-        })
-
-        # all relationships => all first nodes => all second nodes
-        for tp in relationships:
-            rel_name = tp.get('tp')
-            demo = neo_graph.match((a,), r_type=rel_name)
-
-            for d in demo:
-                e_node = d.end_node
-                END_ID = e_node.identity
-
-                # 第二级节点
-                second_nodes = neo_graph.match((e_node, ))
-
-                for s_d in second_nodes:
-                    second_name = s_d.end_node['name']
-                    SECOND_NODE_ID = s_d.identity
-                    second_rel_name = type(s_d).__name__
-                    response_node.append({
-                        'name': second_name,
-                        'id': SECOND_NODE_ID
-                    })
-                    response_links.append({
-                        'start': END_ID,
-                        'end': SECOND_NODE_ID,
-                        'rel': second_rel_name
-                    })
-
-                response_links.append({
-                    'start': START_ID,
-                    'end': END_ID,
-                    'rel': rel_name
-                })
-                response_node.append({
-                    'name': e_node['name'],
-                    'id': END_ID
-                })
-
-        return Response({
-            'links': response_links,
-            'data': response_node,
-        })
+        return Response(response_result)
 
 
 class PrescriptionView(viewsets.ModelViewSet):
@@ -212,3 +162,127 @@ class XingWeiView(viewsets.ModelViewSet):
     queryset = models.XingWei.objects.all()
     serializer_class = XingWeiSerializer
     lookup_field = 'neo_id'
+
+
+class SearchView(viewsets.ViewSet):
+    """
+    :搜索模块
+    """
+    # permission_classes = [TokenHasScope, ]
+    # required_scopes = ['basic:read']
+
+    def strip_str(self, s):
+        _search = s.strip()
+        if not _search:
+            raise ParseError(detail='查询字段不可为空')
+
+        return _search
+
+    @action(detail=True)
+    def get_literature(self, request, search, *args, **kwargs):
+        _search = self.strip_str(search)
+
+        search_params = _search.split(' ')
+        # search_query = Q()
+        # 查找文献相关的列表=>目前以title查询
+        initial_query = 'n.title contains "%s"'
+        cypher_where = list()
+
+        if search_params:
+            for p in search_params:
+                # search_query |= Q(title__icontains=p)
+                cypher_query = initial_query % p
+                cypher_where.append(cypher_query)
+
+        cypher = ' OR '.join(cypher_where)
+
+        id_list = neo_graph.run('match (n:Literature) where {} return distinct ID(n) as id'.format(cypher)).data()
+
+        _ids = [i.get('id') for i in id_list]
+        result = models.Literature.objects.filter(neo_id__in=_ids).order_by('-neo_id')
+
+        serializers = LiteratureByProductSerializer(result, many=True, context={'request': request})
+
+        return Response(serializers.data)
+
+    @action(detail=False)
+    def get_about(self, request, info, search, *args, **kwargs):
+        _search = self.strip_str(search)
+        model_type = str(info).upper()
+
+        from .constants import STRING_TO_NEO_NAME
+        neo_model_name = STRING_TO_NEO_NAME.get(model_type)
+
+        if neo_model_name:
+            node_list = neo_graph.run('match (n:{}) where n.name contains "{}" return distinct ID(n) as id, n.name as name'.format(neo_model_name, _search)).data()
+        else:
+            raise NotFound
+
+        return Response(node_list)
+
+    def same_part(self, search, model, model_type):
+        _search = self.strip_str(search)
+
+        try:
+            node = neo_graph.run('match (n:{}) where n.name="{}" return ID(n) as id'.format(model_type, _search)).data()
+            if len(node) == 1:
+                result = model.objects.get(neo_id__in=[i.get('id') for i in node])
+            else:
+                raise NotFound
+
+        except model.DoesNotExist:
+            raise NotFound
+
+        return result
+
+    @action(detail=False)
+    def get_term(self, request, search, *args, **kwargs):
+        result = self.same_part(search, models.Term, 'Term')
+        response_json = get_info_from_node(result, 'Term')
+        return Response(response_json)
+
+    @action(detail=False)
+    def get_prescription(self, request, search, *args, **kwargs):
+        result = self.same_part(search, models.Prescription, 'Prescription')
+        response_json = get_info_from_node(result, 'Prescription')
+        return Response(response_json)
+
+    @action(detail=False)
+    def get_tcm(self, request, search, *args, **kwargs):
+        result = self.same_part(search, models.TCM, 'TCM')
+        response_json = get_info_from_node(result, 'TCM')
+        return Response(response_json)
+
+    def about_same_part(self, search, model, model_type, rel_node_name):
+        """
+        : search=>搜索的字段内容
+        : model=>数据表
+        : model_type=>当前的Neo4j数据类型
+        : rel_node_name=>中间关系模型,借助此模型进行查询相关节点
+        """
+        result = self.same_part(search, model, model_type)
+        rel_nodes_id_list = neo_graph.run('match (n:{})-[r1]-(m:{})-[r2]-(n2:{}) where n.name="{}" return distinct ID(n2) as id'.format(model_type, rel_node_name, model_type, result.name)).data()
+        _id_list = [info.get('id') for info in rel_nodes_id_list]
+        result = model.objects.filter(neo_id__in=_id_list)
+        return result
+
+    @action(detail=False)
+    def about_prescription(self, request, search, *args, **kwargs):
+        # 查询相关中医方剂
+        result = self.about_same_part(search, models.Prescription, 'Prescription', 'TCM')
+        serializer = PrescriptionUrlSerializer(result, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=False)
+    def about_tcm(self, request, search, *args, **kwargs):
+        result = self.about_same_part(search, models.TCM, 'TCM', 'Prescription')
+        serializer = TcmUrlSerializer(result, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=False)
+    def about_term(self, request, search, *args, **kwargs):
+        # TODO: 无数据, API
+        result = self.about_same_part(search, models.Term, 'Term', 'Term')
+
+        serializer = TermUrlSerializer(result, many=True, context={'request': request})
+        return Response(serializer.data)
