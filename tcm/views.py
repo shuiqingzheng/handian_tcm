@@ -166,10 +166,10 @@ class XingWeiView(viewsets.ModelViewSet):
 
 class SearchView(viewsets.ViewSet):
     """
-    :搜索模块
+    : 搜索模块
     """
-    # permission_classes = [TokenHasScope, ]
-    # required_scopes = ['basic:read']
+    permission_classes = [TokenHasScope, ]
+    required_scopes = ['basic:read']
 
     def strip_str(self, s):
         _search = s.strip()
@@ -180,6 +180,9 @@ class SearchView(viewsets.ViewSet):
 
     @action(detail=True)
     def get_literature(self, request, search, *args, **kwargs):
+        """
+        - 根据search关键字, 查询相关文献列表
+        """
         _search = self.strip_str(search)
 
         search_params = _search.split(' ')
@@ -207,6 +210,11 @@ class SearchView(viewsets.ViewSet):
 
     @action(detail=False)
     def get_about(self, request, info, search, *args, **kwargs):
+        """
+        - 根据关键字, 查询对应类型的列表
+        - info: 查询数据的类型; eg. term
+        - search: 查询关键字
+        """
         _search = self.strip_str(search)
         model_type = str(info).upper()
 
@@ -237,18 +245,27 @@ class SearchView(viewsets.ViewSet):
 
     @action(detail=False)
     def get_term(self, request, search, *args, **kwargs):
+        """
+        - 根据search关键字, 查询医学名词二级图谱
+        """
         result = self.same_part(search, models.Term, 'Term')
         response_json = get_info_from_node(result, 'Term')
         return Response(response_json)
 
     @action(detail=False)
     def get_prescription(self, request, search, *args, **kwargs):
+        """
+        - 根据search关键字, 查询中医方剂二级图谱
+        """
         result = self.same_part(search, models.Prescription, 'Prescription')
         response_json = get_info_from_node(result, 'Prescription')
         return Response(response_json)
 
     @action(detail=False)
     def get_tcm(self, request, search, *args, **kwargs):
+        """
+        - 根据search关键字, 查询中药材二级图谱
+        """
         result = self.same_part(search, models.TCM, 'TCM')
         response_json = get_info_from_node(result, 'TCM')
         return Response(response_json)
@@ -268,19 +285,27 @@ class SearchView(viewsets.ViewSet):
 
     @action(detail=False)
     def about_prescription(self, request, search, *args, **kwargs):
-        # 查询相关中医方剂
+        """
+        - 查询中医方剂相关列表
+        """
         result = self.about_same_part(search, models.Prescription, 'Prescription', 'TCM')
         serializer = PrescriptionUrlSerializer(result, many=True, context={'request': request})
         return Response(serializer.data)
 
     @action(detail=False)
     def about_tcm(self, request, search, *args, **kwargs):
+        """
+        - 查询中药材相关列表
+        """
         result = self.about_same_part(search, models.TCM, 'TCM', 'Prescription')
         serializer = TcmUrlSerializer(result, many=True, context={'request': request})
         return Response(serializer.data)
 
     @action(detail=False)
     def about_term(self, request, search, *args, **kwargs):
+        """
+        - 查询医学名词相关列表
+        """
         # TODO: 无数据, API
         result = self.about_same_part(search, models.Term, 'Term', 'Term')
 

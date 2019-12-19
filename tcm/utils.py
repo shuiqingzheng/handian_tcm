@@ -29,7 +29,7 @@ def get_info_from_node(instance, model_type):
     for val in data:
         return_json['data'].append({
             'name': val.get('name'),
-            'id': START_ID
+            'id': val.get('id')
         })
         return_json['links'].append({
             'start': START_ID,
