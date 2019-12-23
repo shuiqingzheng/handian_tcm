@@ -22,14 +22,16 @@ def get_info_from_node(instance, model_type):
     return_json['data'].append({
         'name': a['name'],
         'id': START_ID,
+        'type': list(a.labels)[0]
     })
 
-    data = neo_graph.run('MATCH (n:{})-[r]-(m) where n.name="{}" RETURN m.name as name, type(r) as tp, id(m) as id'.format(model_type, instance.name)).data()
-    print(data)
+    data = neo_graph.run('MATCH (n:{})-[r]-(m) where n.name="{}" RETURN m.name as name, type(r) as tp, id(m) as id, labels(m) as labels'.format(model_type, instance.name)).data()
+
     for val in data:
         return_json['data'].append({
             'name': val.get('name'),
-            'id': val.get('id')
+            'id': val.get('id'),
+            'label': list(val.get('labels'))[0]
         })
         return_json['links'].append({
             'start': START_ID,
