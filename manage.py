@@ -2,6 +2,12 @@
 import os
 import sys
 
+try:
+    from gevent import monkey
+    monkey.patch_all()
+except ImportError:
+    pass
+
 if __name__ == '__main__':
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'handian_tcm.settings')
     try:

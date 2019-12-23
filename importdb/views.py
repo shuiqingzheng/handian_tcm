@@ -1,10 +1,7 @@
 from django.shortcuts import render
-from django.views.generic import TemplateView
-from django.http import HttpResponse
 from django.apps import apps
 from django.views import View
 
-import tcm
 from importdb.utils import MODEL_FUNC_NAME
 
 

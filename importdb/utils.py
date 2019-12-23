@@ -1,13 +1,16 @@
+from django.db import connection
 from handian_tcm import neo_graph
-
 from py2neo import NodeMatcher
-
 from tcm import models
+import math
+import gevent
 
+
+READ_LIMIT = 300
 matcher = NodeMatcher(neo_graph)
 
 
-def same_code(literature, i):
+def same_code_literature(literature, i):
     literature.name = i['name']
     literature.summary = i['summary']
     literature.image = i['image']
@@ -25,21 +28,29 @@ def same_code(literature, i):
     literature.operate_time = i['operate_time']
 
 
-def sys_literatures():
-    nodes = matcher.match('Literature')
+def inner_sys(nodes):
+    model_list = []
+    for i in set(nodes):
+        literature = models.Literature()
+        literature.neo_id = i.identity
+        same_code_literature(literature, i)
+        model_list.append(literature)
+    models.Literature.objects.bulk_create(model_list)
 
-    for i in list(nodes):
-        # 判断是否已经存在
-        try:
-            obj_literature = models.Literature.objects.get(neo_id=i.identity)
-        except models.Literature.DoesNotExist:
-            literature = models.Literature()
-            literature.neo_id = i.identity
-            same_code(literature, i)
-            literature.save()
-        else:
-            same_code(obj_literature, i)
-            obj_literature.save()
+
+def sys_literatures():
+    with connection.cursor() as cursor:
+        a = cursor.execute('delete from tcm_literature;')
+        print('删除的条数:{}'.format(a))
+
+    all_jobs = []
+
+    len_nodes = matcher.match('Literature').__len__()
+    for page in range(math.ceil(len_nodes / READ_LIMIT)):
+        nodes = matcher.match('Literature').skip(READ_LIMIT * page).limit(READ_LIMIT)
+        all_jobs.append(gevent.spawn(inner_sys, nodes))
+
+    gevent.joinall(all_jobs)
 
 
 def same_code_tcm(tcm, i):
@@ -76,21 +87,29 @@ def same_code_tcm(tcm, i):
     tcm.zhu = i['zhu']
 
 
-def sys_tcm():
-    nodes = matcher.match('TCM')
-
+def inner_sys_tcm(nodes):
+    model_list = []
     for i in nodes:
-        # 判断是否已经存在
-        try:
-            obj_tcm = models.TCM.objects.get(neo_id=i.identity)
-        except models.TCM.DoesNotExist:
-            tcm = models.TCM()
-            tcm.neo_id = i.identity
-            same_code_tcm(tcm, i)
-            tcm.save()
-        else:
-            same_code_tcm(obj_tcm, i)
-            obj_tcm.save()
+        tcm = models.TCM()
+        tcm.neo_id = i.identity
+        same_code_tcm(tcm, i)
+        model_list.append(tcm)
+
+    models.TCM.objects.bulk_create(model_list)
+
+
+def sys_tcm():
+    with connection.cursor() as cursor:
+        a = cursor.execute('delete from tcm_tcm;')
+        print('删除的TCM条数:{}'.format(a))
+
+    len_nodes = matcher.match('TCM').__len__()
+    all_jobs = []
+    for page in range(math.ceil(len_nodes / READ_LIMIT)):
+        nodes = matcher.match('TCM').skip(READ_LIMIT * page).limit(READ_LIMIT)
+        all_jobs.append(gevent.spawn(inner_sys_tcm, nodes))
+
+    gevent.joinall(all_jobs)
 
 
 def same_code_product(instance, i):
@@ -103,78 +122,114 @@ def same_code_term(instance, i):
     instance.content = i['content']
 
 
-def sys_term():
-    nodes = matcher.match('Term')
-
+def inner_sys_term(nodes):
+    model_list = []
     for i in nodes:
-        # 判断是否已经存在
-        try:
-            obj_term = models.Term.objects.get(neo_id=i.identity)
-        except models.Term.DoesNotExist:
-            term = models.Term()
-            term.neo_id = i.identity
-            same_code_term(term, i)
-            term.save()
-        else:
-            same_code_term(obj_term, i)
-            obj_term.save()
+        term = models.Term()
+        term.neo_id = i.identity
+        same_code_term(term, i)
+        model_list.append(term)
+
+    models.Term.objects.bulk_create(model_list)
+
+
+def sys_term():
+    with connection.cursor() as cursor:
+        a = cursor.execute('delete from tcm_term;')
+        print('删除的Term条数:{}'.format(a))
+
+    len_nodes = matcher.match('Term').__len__()
+    all_jobs = []
+    for page in range(math.ceil(len_nodes / READ_LIMIT)):
+        nodes = matcher.match('Term').skip(READ_LIMIT * page).limit(READ_LIMIT)
+        all_jobs.append(gevent.spawn(inner_sys_term, nodes))
+
+    gevent.joinall(all_jobs)
+
+
+def inner_sys_product(nodes):
+    model_list = []
+    for i in nodes:
+        product = models.HandianProduct()
+        product.neo_id = i.identity
+        same_code_product(product, i)
+        model_list.append(product)
+
+    models.HandianProduct.objects.bulk_create(model_list)
 
 
 def sys_product():
-    nodes = matcher.match('HandianProduct')
+    with connection.cursor() as cursor:
+        a = cursor.execute('delete from tcm_handianproduct;')
+        print('删除的HandianProduct条数:{}'.format(a))
 
-    for i in nodes:
-        # 判断是否已经存在
-        try:
-            obj_product = models.HandianProduct.objects.get(neo_id=i.identity)
-        except models.HandianProduct.DoesNotExist:
-            product = models.HandianProduct()
-            product.neo_id = i.identity
-            same_code_product(product, i)
-            product.save()
-        else:
-            same_code_product(obj_product, i)
-            obj_product.save()
+    len_nodes = matcher.match('HandianProduct').__len__()
+
+    all_jobs = []
+    for page in range(math.ceil(len_nodes / READ_LIMIT)):
+        nodes = matcher.match('HandianProduct').skip(READ_LIMIT * page).limit(READ_LIMIT)
+
+        all_jobs.append(gevent.spawn(inner_sys_product, nodes))
+
+    gevent.joinall(all_jobs)
 
 
 same_code_prescription = same_code_product
 
 
-def sys_prescription():
-    nodes = matcher.match('Prescription')
-
+def inner_sys_prescription(nodes):
+    model_list = []
     for i in nodes:
-        # 判断是否已经存在
-        try:
-            obj_prescription = models.Prescription.objects.get(neo_id=i.identity)
-        except models.Prescription.DoesNotExist:
-            prescription = models.Prescription()
-            prescription.neo_id = i.identity
-            same_code_prescription(prescription, i)
-            prescription.save()
-        else:
-            same_code_prescription(obj_prescription, i)
-            obj_prescription.save()
+        prescription = models.Prescription()
+        prescription.neo_id = i.identity
+        same_code_prescription(prescription, i)
+        model_list.append(prescription)
+
+    models.Prescription.objects.bulk_create(model_list)
+
+
+def sys_prescription():
+    with connection.cursor() as cursor:
+        a = cursor.execute('delete from tcm_prescription;')
+        print('删除的Prescription条数:{}'.format(a))
+
+    len_nodes = matcher.match('Prescription').__len__()
+    all_jobs = []
+
+    for page in range(math.ceil(len_nodes / READ_LIMIT)):
+        nodes = matcher.match('Prescription').skip(READ_LIMIT * page).limit(READ_LIMIT)
+        all_jobs.append(gevent.spawn(inner_sys_prescription, nodes))
+
+    gevent.joinall(all_jobs)
 
 
 same_code_xingwei = same_code_product
 
 
-def sys_xingwei():
-    nodes = matcher.match('Xingwei')
-
+def inner_sys_xingwei(nodes):
+    model_list = []
     for i in nodes:
-        # 判断是否已经存在
-        try:
-            obj_xing = models.XingWei.objects.get(neo_id=i.identity)
-        except models.XingWei.DoesNotExist:
-            xing = models.XingWei()
-            xing.neo_id = i.identity
-            same_code_xingwei(xing, i)
-            xing.save()
-        else:
-            same_code_xingwei(obj_xing, i)
-            obj_xing.save()
+        xing = models.XingWei()
+        xing.neo_id = i.identity
+        same_code_xingwei(xing, i)
+        model_list.append(xing)
+
+    models.XingWei.objects.bulk_create(model_list)
+
+
+def sys_xingwei():
+    with connection.cursor() as cursor:
+        a = cursor.execute('delete from tcm_xingwei;')
+        print('删除的Xingwei条数:{}'.format(a))
+
+    len_nodes = matcher.match('Xingwei').__len__()
+    all_jobs = []
+
+    for page in range(math.ceil(len_nodes / READ_LIMIT)):
+        nodes = matcher.match('Xingwei').skip(READ_LIMIT * page).limit(READ_LIMIT)
+        all_jobs.append(gevent.spawn(inner_sys_xingwei, nodes))
+
+    gevent.joinall(all_jobs)
 
 
 MODEL_FUNC_NAME = {
