@@ -188,6 +188,7 @@ RIVER_KTDB_USER = os.environ.get('RIVER_KTDB_USER')
 RIVER_KTDB_PASSWORD = os.environ.get('RIVER_KTDB_PASSWORD')
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
 
 NGINX_SERVER = os.environ.get('NGINX_SERVER')
 NGINX_PORT = os.environ.get('NGINX_PORT')

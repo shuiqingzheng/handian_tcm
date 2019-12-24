@@ -53,8 +53,8 @@ class HandianProductSerializer(serializers.ModelSerializer):
             return None
 
         nginx_url = ':'.join([settings.NGINX_SERVER, str(settings.NGINX_PORT)])
-        pic_url = '/'.join([nginx_url, settings.MEDIA_ROOT, str(obj.pic_url)])
-        return pic_url
+        return_url = nginx_url + str(obj.pic_url)
+        return return_url
 
 
 class PrescriptionSerializer(serializers.ModelSerializer):
