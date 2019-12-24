@@ -87,10 +87,23 @@ class Literature(models.Model):
         ordering = ['-id']
 
 
+def custom_upload_to(instance, filename):
+    return 'product/{}/{}'.format(instance.neo_id, filename)
+
+
 class HandianProduct(models.Model):
     neo_id = models.IntegerField(verbose_name='Neo4j_ID', help_text='Neo4j_ID', blank=True, null=True, unique=True)
 
     name = models.CharField(help_text='名称', verbose_name='名称', blank=True, null=True, max_length=50)
+
+    is_show = models.BooleanField(default=True, help_text='前端是否展示', verbose_name='是否展示', blank=True)
+
+    pic = models.ImageField(upload_to=custom_upload_to, help_text='上传产品图片', verbose_name='产品图片', blank=True, null=True,)
+
+    @property
+    def pic_url(self):
+        if self.pic and hasattr(self.pic, 'url'):
+            return self.pic.url
 
     def __str__(self):
         return '{}'.format(self.pk)

@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import serializers
 
 from tcm.models import (
@@ -13,6 +14,7 @@ class TcmSerializer(serializers.ModelSerializer):
 
 
 class TcmUrlSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = TCM
         fields = ['url', 'name']
@@ -40,11 +42,19 @@ class LiteratureByProductSerializer(serializers.ModelSerializer):
 
 class HandianProductSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='product-detail', lookup_field='neo_id')
+    pic_url = serializers.SerializerMethodField()
 
     class Meta:
         model = HandianProduct
-        exclude = ('id', )
-        # fields = '__all__'
+        fields = ('neo_id', 'url', 'is_show', 'name', 'pic_url')
+
+    def get_pic_url(self, obj):
+        if not obj.pic_url:
+            return None
+
+        nginx_url = ':'.join([settings.NGINX_SERVER, str(settings.NGINX_PORT)])
+        pic_url = '/'.join([nginx_url, settings.MEDIA_ROOT, str(obj.pic_url)])
+        return pic_url
 
 
 class PrescriptionSerializer(serializers.ModelSerializer):
@@ -72,6 +82,7 @@ class XingWeiSerializer(serializers.ModelSerializer):
 
 
 class TermUrlSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Term
         fields = ['url', 'name']
@@ -81,6 +92,7 @@ class TermUrlSerializer(serializers.ModelSerializer):
 
 
 class TermSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Term
         exclude = ('id', )

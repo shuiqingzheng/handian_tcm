@@ -14,6 +14,7 @@ handian_tcm.sublime-*
 
 # static files
 /handian_tcm/settings.py
+media/*
 
 # C extensions
 *.so
