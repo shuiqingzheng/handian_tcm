@@ -21,7 +21,11 @@ urlpatterns = [
 
     path('product/', HandianProductView.as_view({'get': 'list'}), name='product-list'),
 
+    # product详情:返回所有的关联节点
     path('product/<int:neo_id>/', HandianProductView.as_view({'get': 'retrieve'}), name='product-detail'),
+
+    # product详情:关联节点根据页码返回
+    path('product/<int:neo_id>/<int:page>/', HandianProductView.as_view({'get': 'retrieve'}), name='product-page-detail'),
 
     path('product/<int:neo_id>/relationship/<str:relationship>/', HandianProductView.as_view({'get': 'retrieve_relationship'}), name='product-relationship-detail'),
 

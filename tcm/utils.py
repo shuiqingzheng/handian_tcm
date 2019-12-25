@@ -1,7 +1,7 @@
 from handian_tcm import neo_graph
 
 
-def get_info_from_node(instance, model_type):
+def get_info_from_node(instance, model_type, page=None):
     """
     :Neo4j中获取两级节点信息
     :调用示例=> get_info_from_node(term_instance, 'Term')
@@ -22,10 +22,17 @@ def get_info_from_node(instance, model_type):
     return_json['data'].append({
         'name': a['name'],
         'id': START_ID,
-        'type': list(a.labels)[0]
+        'label': list(a.labels)[0]
     })
 
-    data = neo_graph.run('MATCH (n:{})-[r]-(m) where n.name="{}" RETURN m.name as name, type(r) as tp, id(m) as id, labels(m) as labels'.format(model_type, instance.name)).data()
+    if page:
+        data = neo_graph.run('MATCH (n:{})-[r]-(m) where n.name="{}" '
+                             'RETURN m.name as name, type(r) as tp, id(m) as id, labels(m) as labels '
+                             'order by id skip {} limit {}'.format(model_type, instance.name, page*10, 10)).data()
+    else:
+        data = neo_graph.run('MATCH (n:{})-[r]-(m) where n.name="{}" '
+                             'RETURN m.name as name, type(r) as tp, id(m) as id, labels(m) as labels '
+                             'order by id'.format(model_type, instance.name)).data()
 
     for val in data:
         return_json['data'].append({

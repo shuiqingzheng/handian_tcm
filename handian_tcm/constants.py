@@ -1,5 +1,5 @@
 HOST = 'localhost'
-PORT = 3306
+PORT = 3388
 USER = 'root'
 PASSWORD = 'mysql'
 NAME = 'handian_tcm'

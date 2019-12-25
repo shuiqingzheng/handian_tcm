@@ -43,7 +43,7 @@ class LiteratureView(viewsets.ModelViewSet):
 class HandianProductView(viewsets.ModelViewSet):
     permission_classes = [ProductListPermission]
     required_scopes = ['basic:read']
-    queryset = models.HandianProduct.objects.all()
+    queryset = models.HandianProduct.objects.filter(is_show=True).order_by('-neo_id')
     lookup_field = 'neo_id'
 
     def get_serializer_class(self):
@@ -79,6 +79,7 @@ class HandianProductView(viewsets.ModelViewSet):
         response_node.append({
             'name': center_node['name'],
             'id': START_ID,
+            'label': list(center_node.labels)[0]
         })
 
         demo = neo_graph.match((center_node,), r_type=relationship_upper)
@@ -93,12 +94,13 @@ class HandianProductView(viewsets.ModelViewSet):
             })
             response_node.append({
                 'name': e_node['name'],
-                'id': END_ID
+                'id': END_ID,
+                'label': list(e_node.labels)[0]
             })
 
         return Response({
-            'links': response_links,
             'data': response_node,
+            'links': response_links
         })
 
     @action(detail=False)
@@ -140,8 +142,10 @@ class HandianProductView(viewsets.ModelViewSet):
 
     # override retrieve to response relationship
     def retrieve(self, request, *args, **kwargs):
+        page = kwargs.get('page', 1)
         instance = self.get_object()
-        response_result = get_info_from_node(instance, 'HandianProduct')
+        response_result = get_info_from_node(instance, 'HandianProduct', page=page)
+
         if not response_result:
             raise NotFound
 
