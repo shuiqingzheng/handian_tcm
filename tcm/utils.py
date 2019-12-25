@@ -1,6 +1,10 @@
 from handian_tcm import neo_graph
-
+from py2neo import NodeMatcher
 from django.conf import settings
+
+import math
+
+matcher = NodeMatcher(neo_graph)
 
 
 def get_info_from_node(instance, model_type, page=None):
@@ -9,7 +13,7 @@ def get_info_from_node(instance, model_type, page=None):
     :调用示例=> get_info_from_node(term_instance, 'Term', page=1)
     :return dict/None
     """
-    a = neo_graph.nodes.match(model_type, name=instance.name).first()
+    a = matcher.get(instance.neo_id)
 
     if not a:
         return None
@@ -26,18 +30,32 @@ def get_info_from_node(instance, model_type, page=None):
         'id': START_ID,
         'label': list(a.labels)[0]
     })
+    neo_total_count = neo_graph.run('MATCH (n:{})-[r]-(m) where ID(m)={} '
+                                    'RETURN count(m) as cnt'.format(model_type, instance.neo_id)).data()[0]
+
+    neo_total_cnt = neo_total_count.get('cnt')
+
+    total_pages = math.ceil(neo_total_cnt / settings.NEO_PAGE_SIZE)
+
+    # page_range = range(1, total_pages + 1)
+
+    if page > total_pages:
+        page = total_pages
+
+    if page < 1:
+        page = 1
 
     if page:
-        data = neo_graph.run('MATCH (n:{})-[r]-(m) where n.name="{}" '
+        data = neo_graph.run('MATCH (n:{})-[r]-(m) where ID(n)={} '
                              'RETURN m.name as name, type(r) as tp, id(m) as id, labels(m) as labels '
                              'order by id skip {} limit {}'.format(
-                                 model_type, instance.name,
+                                 model_type, instance.neo_id,
                                  (page - 1) * settings.NEO_PAGE_SIZE, settings.NEO_PAGE_SIZE
                              )).data()
     else:
-        data = neo_graph.run('MATCH (n:{})-[r]-(m) where n.name="{}" '
+        data = neo_graph.run('MATCH (n:{})-[r]-(m) where ID(n)={} '
                              'RETURN m.name as name, type(r) as tp, id(m) as id, labels(m) as labels '
-                             'order by id'.format(model_type, instance.name)).data()
+                             'order by id'.format(model_type, instance.neo_id)).data()
 
     for val in data:
         return_json['data'].append({

@@ -1,4 +1,5 @@
 from handian_tcm import neo_graph
+from py2neo import NodeMatcher
 from .permissions import ProductListPermission
 from .utils import get_info_from_node
 from rest_framework import viewsets
@@ -14,6 +15,8 @@ from tcm.serializers import (
     XingWeiSerializer, PrescriptionUrlSerializer, TcmUrlSerializer,
     TermSerializer, TermUrlSerializer,
 )
+
+matcher = NodeMatcher(neo_graph)
 
 
 class TermView(viewsets.ModelViewSet):
@@ -63,10 +66,7 @@ class HandianProductView(viewsets.ModelViewSet):
 
         instance = self.get_object()
 
-        center_node = neo_graph.nodes.match(
-            'HandianProduct',
-            name=instance.name
-        ).first()
+        center_node = matcher.get(instance.neo_id)
 
         if not center_node:
             return Response({
@@ -110,8 +110,8 @@ class HandianProductView(viewsets.ModelViewSet):
         response_rels = list()
 
         all_rels = neo_graph.run('match (p:HandianProduct)-[r]-(n) '
-                                 'where p.name="{}" '
-                                 'return distinct type(r) as tp'.format(product.name))
+                                 'where ID(p)={} '
+                                 'return distinct type(r) as tp'.format(product.neo_id))
 
         for rel in all_rels:
             response_rels.append(rel.get('tp'))
@@ -125,7 +125,7 @@ class HandianProductView(viewsets.ModelViewSet):
         product = self.get_object()
 
         # neo4j
-        neo_product = neo_graph.nodes.match('HandianProduct', name=product.name).first()
+        neo_product = matcher.get(product.neo_id)
         rel_literatures = neo_graph.match((neo_product,), r_type='REFERENCE')
         for rel_node in rel_literatures:
             response_literatures_id.append(rel_node.end_node.identity)

@@ -150,19 +150,21 @@ def sys_term():
 def inner_sys_product(nodes):
     model_list = []
     for i in nodes:
-        product = models.HandianProduct()
-        product.neo_id = i.identity
-        same_code_product(product, i)
-        model_list.append(product)
+        try:
+            cur_product = models.HandianProduct.objects.get(neo_id=i.identity)
+        except models.HandianProduct.DoesNotExist:
+            product = models.HandianProduct()
+            product.neo_id = i.identity
+            same_code_product(product, i)
+            model_list.append(product)
+        else:
+            same_code_product(cur_product, i)
+            cur_product.save()
 
     models.HandianProduct.objects.bulk_create(model_list)
 
 
 def sys_product():
-    with connection.cursor() as cursor:
-        a = cursor.execute('delete from tcm_handianproduct;')
-        print('删除的HandianProduct条数:{}'.format(a))
-
     len_nodes = matcher.match('HandianProduct').__len__()
 
     all_jobs = []
