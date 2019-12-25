@@ -109,7 +109,9 @@ class HandianProductView(viewsets.ModelViewSet):
 
         response_rels = list()
 
-        all_rels = neo_graph.run('match (p:HandianProduct)-[r]-(n) where p.name="{}" return distinct type(r) as tp'.format(product.name))
+        all_rels = neo_graph.run('match (p:HandianProduct)-[r]-(n) '
+                                 'where p.name="{}" '
+                                 'return distinct type(r) as tp'.format(product.name))
 
         for rel in all_rels:
             response_rels.append(rel.get('tp'))
@@ -137,7 +139,9 @@ class HandianProductView(viewsets.ModelViewSet):
             else:
                 response_queryset.append(literature_instance)
         # 未分页
-        serializer = LiteratureByProductSerializer(response_queryset, many=True, context={'request': request})
+        serializer = LiteratureByProductSerializer(
+            response_queryset, many=True, context={'request': request}
+        )
         return Response(serializer.data)
 
     # override retrieve to response relationship
@@ -203,7 +207,8 @@ class SearchView(viewsets.ViewSet):
 
         cypher = ' OR '.join(cypher_where)
 
-        id_list = neo_graph.run('match (n:Literature) where {} return distinct ID(n) as id'.format(cypher)).data()
+        id_list = neo_graph.run('match (n:Literature) '
+                                'where {} return distinct ID(n) as id'.format(cypher)).data()
 
         _ids = [i.get('id') for i in id_list]
         result = models.Literature.objects.filter(neo_id__in=_ids).order_by('-neo_id')
@@ -226,7 +231,11 @@ class SearchView(viewsets.ViewSet):
         neo_model_name = STRING_TO_NEO_NAME.get(model_type)
 
         if neo_model_name:
-            node_list = neo_graph.run('match (n:{}) where n.name contains "{}" return distinct ID(n) as id, n.name as name'.format(neo_model_name, _search)).data()
+            node_list = neo_graph.run('match (n:{}) '
+                                      'where n.name contains "{}" '
+                                      'return distinct ID(n) as id, n.name as name'.format(
+                                          neo_model_name, _search
+                                      )).data()
         else:
             raise NotFound
 
@@ -236,7 +245,10 @@ class SearchView(viewsets.ViewSet):
         _search = self.strip_str(search)
 
         try:
-            node = neo_graph.run('match (n:{}) where n.name="{}" return ID(n) as id'.format(model_type, _search)).data()
+            node = neo_graph.run('match (n:{}) where n.name="{}" '
+                                 'return ID(n) as id'.format(
+                                     model_type, _search
+                                 )).data()
             if len(node) == 1:
                 result = model.objects.get(neo_id__in=[i.get('id') for i in node])
             else:
@@ -282,7 +294,11 @@ class SearchView(viewsets.ViewSet):
         : rel_node_name=>中间关系模型,借助此模型进行查询相关节点
         """
         result = self.same_part(search, model, model_type)
-        rel_nodes_id_list = neo_graph.run('match (n:{})-[r1]-(m:{})-[r2]-(n2:{}) where n.name="{}" return distinct ID(n2) as id'.format(model_type, rel_node_name, model_type, result.name)).data()
+        rel_nodes_id_list = neo_graph.run('match (n:{})-[r1]-(m:{})-[r2]-(n2:{}) '
+                                          'where n.name="{}" '
+                                          'return distinct ID(n2) as id'.format(
+                                              model_type, rel_node_name, model_type, result.name
+                                          )).data()
         _id_list = [info.get('id') for info in rel_nodes_id_list]
         result = model.objects.filter(neo_id__in=_id_list)
         return result

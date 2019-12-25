@@ -1,10 +1,12 @@
 from handian_tcm import neo_graph
 
+from django.conf import settings
+
 
 def get_info_from_node(instance, model_type, page=None):
     """
     :Neo4j中获取两级节点信息
-    :调用示例=> get_info_from_node(term_instance, 'Term')
+    :调用示例=> get_info_from_node(term_instance, 'Term', page=1)
     :return dict/None
     """
     a = neo_graph.nodes.match(model_type, name=instance.name).first()
@@ -28,7 +30,10 @@ def get_info_from_node(instance, model_type, page=None):
     if page:
         data = neo_graph.run('MATCH (n:{})-[r]-(m) where n.name="{}" '
                              'RETURN m.name as name, type(r) as tp, id(m) as id, labels(m) as labels '
-                             'order by id skip {} limit {}'.format(model_type, instance.name, page*10, 10)).data()
+                             'order by id skip {} limit {}'.format(
+                                 model_type, instance.name,
+                                 (page - 1) * settings.NEO_PAGE_SIZE, settings.NEO_PAGE_SIZE
+                             )).data()
     else:
         data = neo_graph.run('MATCH (n:{})-[r]-(m) where n.name="{}" '
                              'RETURN m.name as name, type(r) as tp, id(m) as id, labels(m) as labels '
@@ -45,8 +50,6 @@ def get_info_from_node(instance, model_type, page=None):
             'end': val.get('id'),
             'rel': val.get('tp')
         })
-
-    # relationships = neo_graph.run('match (p:{})-[r]-(n) where p.name="{}" return distinct type(r) as tp'.format(model_type, instance.name)).data()
 
     # all relationships => all first nodes => all second nodes
     # for tp in relationships:

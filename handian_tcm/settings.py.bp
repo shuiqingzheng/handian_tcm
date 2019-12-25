@@ -192,3 +192,5 @@ MEDIA_URL = '/media/'
 
 NGINX_SERVER = os.environ.get('NGINX_SERVER')
 NGINX_PORT = os.environ.get('NGINX_PORT')
+
+NEO_PAGE_SIZE = 10
