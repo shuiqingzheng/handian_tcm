@@ -7,7 +7,7 @@ import math
 matcher = NodeMatcher(neo_graph)
 
 
-def get_info_from_node(instance, model_type, page=None):
+def get_info_from_node(instance, model_type, page=1):
     """
     :Neo4j中获取两级节点信息
     :调用示例=> get_info_from_node(term_instance, 'Term', page=1)

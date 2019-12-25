@@ -47,9 +47,15 @@ urlpatterns = [
 
     path('search/term/<str:search>/', SearchView.as_view({'get': 'get_term'}), name='search-term-detail'),
 
+    path('search/term/<str:search>/<int:page>/', SearchView.as_view({'get': 'get_term'}), name='search-page-term-detail'),
+
     path('search/prescription/<str:search>/', SearchView.as_view({'get': 'get_prescription'}), name='search-prescription-detail'),
 
+    path('search/prescription/<str:search>/<int:page>/', SearchView.as_view({'get': 'get_prescription'}), name='search-page-prescription-detail'),
+
     path('search/tcm/<str:search>/', SearchView.as_view({'get': 'get_tcm'}), name='search-tcm-detail'),
+
+    path('search/tcm/<str:search>/<int:page>/', SearchView.as_view({'get': 'get_tcm'}), name='search-page-tcm-detail'),
 
     path('about/prescription/<str:search>/', SearchView.as_view({'get': 'about_prescription'}), name='search-prescription-about'),
 

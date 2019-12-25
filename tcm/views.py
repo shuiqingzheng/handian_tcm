@@ -264,8 +264,9 @@ class SearchView(viewsets.ViewSet):
         """
         - 根据search关键字, 查询医学名词二级图谱
         """
+        page = kwargs.get('page', 1)
         result = self.same_part(search, models.Term, 'Term')
-        response_json = get_info_from_node(result, 'Term')
+        response_json = get_info_from_node(result, 'Term', page=page)
         return Response(response_json)
 
     @action(detail=False)
@@ -273,8 +274,9 @@ class SearchView(viewsets.ViewSet):
         """
         - 根据search关键字, 查询中医方剂二级图谱
         """
+        page = kwargs.get('page', 1)
         result = self.same_part(search, models.Prescription, 'Prescription')
-        response_json = get_info_from_node(result, 'Prescription')
+        response_json = get_info_from_node(result, 'Prescription', page=page)
         return Response(response_json)
 
     @action(detail=False)
@@ -282,8 +284,9 @@ class SearchView(viewsets.ViewSet):
         """
         - 根据search关键字, 查询中药材二级图谱
         """
+        page = kwargs.get('page', 1)
         result = self.same_part(search, models.TCM, 'TCM')
-        response_json = get_info_from_node(result, 'TCM')
+        response_json = get_info_from_node(result, 'TCM', page=page)
         return Response(response_json)
 
     def about_same_part(self, search, model, model_type, rel_node_name):
